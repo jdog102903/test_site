@@ -158,7 +158,7 @@
 
   <script>
     // Replace YOUR_FORMSPREE_ID with your Formspree endpoint ID (e.g. "xpzgvkrq")
-    const FORMSPREE_ID = "YOUR_FORMSPREE_ID";
+    const FORMSPREE_ID = "xljgbqyw";
 
     const form = document.getElementById('contactForm');
     const sendBtn = document.getElementById('sendBtn');
@@ -211,7 +211,7 @@
 
       // 3. Dispatch to Formspree
       try {
-        if (FORMSPREE_ID && FORMSPREE_ID !== "xljgbqyw") {
+        if (FORMSPREE_ID && FORMSPREE_ID !== "YOUR_FORMSPREE_ID") {
           const postRes = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
