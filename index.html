@@ -3,14 +3,259 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Test Site</title>
+  <title>Network Diagnostics & IP Dispatcher</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f9f9f9; }
-    h1 { color: #2ea44f; }
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
+    .config-box {
+      background: #0b1120;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .config-box label {
+      display: block;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .config-box input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--accent);
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      background-color: var(--accent);
+      color: #0f172a;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      color: #ffffff;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status-area {
+      margin-top: 1.25rem;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .status-area.info { display: block; background: #075985; color: #e0f2fe; }
+    .status-area.success { display: block; background: #064e3b; color: #a7f3d0; }
+    .status-area.error { display: block; background: #7f1d1d; color: #fecaca; }
+
+    .meta-details {
+      margin-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      display: none;
+    }
+
+    .meta-details.show { display: block; }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+      font-size: 0.82rem;
+    }
+
+    .meta-label { color: var(--text-muted); }
+    .meta-val { font-family: monospace; color: var(--text); }
   </style>
 </head>
 <body>
-  <h1>GitHub Pages Test Site is Live!</h1>
-  <p>Connected and ready.</p>
+
+  <div class="container">
+    <h1>📡 Diagnostic Dispatcher</h1>
+    <p class="subtitle">Click the button below to retrieve your public IP and routing metadata, then send a report to your email.</p>
+
+    <div class="config-box">
+      <label for="formspreeId">Formspree Endpoint ID (Optional):</label>
+      <input type="text" id="formspreeId" placeholder="e.g. xpwzldab (or leave empty for test mode)" value="">
+    </div>
+
+    <button id="sendBtn" class="btn">
+      <span>Send IP Report</span>
+    </button>
+
+    <div id="statusBox" class="status-area"></div>
+
+    <div id="metaDetails" class="meta-details">
+      <div class="meta-row">
+        <span class="meta-label">Public IP:</span>
+        <span id="resIp" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">ISP:</span>
+        <span id="resIsp" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Location:</span>
+        <span id="resLoc" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Browser:</span>
+        <span id="resAgent" class="meta-val">—</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById('sendBtn');
+    const statusBox = document.getElementById('statusBox');
+    const metaDetails = document.getElementById('metaDetails');
+    const formspreeInput = document.getElementById('formspreeId');
+
+    const resIp = document.getElementById('resIp');
+    const resIsp = document.getElementById('resIsp');
+    const resLoc = document.getElementById('resLoc');
+    const resAgent = document.getElementById('resAgent');
+
+    // Default configuration (replace 'YOUR_FORMSPREE_ID' with your real ID)
+    const DEFAULT_FORMSPREE_ID = "xljgbqyw";
+
+    sendBtn.addEventListener('click', async () => {
+      sendBtn.disabled = true;
+      statusBox.className = 'status-area info';
+      statusBox.textContent = 'Resolving network metadata...';
+
+      const endpointId = formspreeInput.value.trim() || (DEFAULT_FORMSPREE_ID !== "YOUR_FORMSPREE_ID" ? DEFAULT_FORMSPREE_ID : null);
+
+      try {
+        // Step 1: Query public IP & Geo from ipapi.co (with ipify fallback)
+        let ipData = {};
+        try {
+          const res = await fetch('https://ipapi.co/json/');
+          if (res.ok) {
+            ipData = await res.json();
+          } else {
+            throw new Error('Fallback needed');
+          }
+        } catch {
+          const fallbackRes = await fetch('https://api.ipify.org?format=json');
+          const fallbackJson = await fallbackRes.json();
+          ipData = { ip: fallbackJson.ip, org: 'Unknown', city: 'Unknown', region: 'Unknown', country_name: 'Unknown' };
+        }
+
+        // Display results in UI
+        resIp.textContent = ipData.ip || 'Unknown';
+        resIsp.textContent = ipData.org || 'Unknown';
+        resLoc.textContent = `${ipData.city || 'Unknown'}, ${ipData.region || ''} ${ipData.country_name || ''}`;
+        resAgent.textContent = navigator.userAgent.substring(0, 35) + '...';
+        metaDetails.classList.add('show');
+
+        // Step 2: Post payload to email via Formspree or run simulation
+        if (endpointId) {
+          statusBox.textContent = 'Sending email notification...';
+          const postRes = await fetch(`https://formspree.io/f/${endpointId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              subject: `Diagnostic Alert: IP ${ipData.ip}`,
+              ip_address: ipData.ip,
+              isp: ipData.org,
+              location: `${ipData.city}, ${ipData.region}, ${ipData.country_name}`,
+              timestamp: new Date().toISOString(),
+              userAgent: navigator.userAgent
+            })
+          });
+
+          if (postRes.ok) {
+            statusBox.className = 'status-area success';
+            statusBox.textContent = `✓ Dispatched! Email sent with IP: ${ipData.ip}`;
+          } else {
+            throw new Error('Formspree rejected the request.');
+          }
+        } else {
+          statusBox.className = 'status-area success';
+          statusBox.textContent = `✓ [Simulation Mode] IP resolved: ${ipData.ip}. Enter a Formspree ID to receive emails.`;
+        }
+      } catch (err) {
+        statusBox.className = 'status-area error';
+        statusBox.textContent = `Error: ${err.message || 'Failed to capture or dispatch IP data.'}`;
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
