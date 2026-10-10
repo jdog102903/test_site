@@ -1,243 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Send Jameson a Message</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #334155;
-      --success: #22c55e;
-      --error: #ef4444;
-    }
+	<style>
+		body {
+		background-color: #404040;
+		}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 1.5rem;
-    }
+		h1 {
+		text-align: center;
+		color: solid black;
+		}
 
-    .container {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      padding: 2.25rem;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-    }
 
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
+		p {
 
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.4;
-    }
+		}
 
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
 
-    label {
-      display: block;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-bottom: 0.4rem;
-      font-weight: 500;
-    }
+		.main_box {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		}
 
-    input[type="text"],
-    textarea {
-      width: 100%;
-      background: #0b1120;
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      padding: 0.75rem 1rem;
-      color: var(--text);
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
 
-    input[type="text"]:focus,
-    textarea:focus {
-      border-color: var(--accent);
-    }
+		a:link, a:visited {
+		text-align: center;
+		color: #A76DC2;
+		strong: bold;
+		text-decoration: none;
+		}
 
-    textarea {
-      resize: vertical;
-      min-height: 110px;
-    }
 
-    .btn {
-      width: 100%;
-      padding: 0.85rem 1.5rem;
-      background-color: var(--accent);
-      color: #0f172a;
-      border: none;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
-      margin-top: 0.5rem;
-    }
+		.main_box div {
+		width: 90vw;
+		padding: 20px;
+		border: 10px solid black;
+		margin: 0px auto;
+		text-align: center;
+		border-radius: 25px;
+		}
 
-    .btn:hover:not(:disabled) {
-      background-color: var(--accent-hover);
-      color: #ffffff;
-    }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .status-area {
-      margin-top: 1.25rem;
-      border-radius: 0.5rem;
-      padding: 0.75rem 1rem;
-      font-size: 0.9rem;
-      display: none;
-      text-align: center;
-    }
-
-    .status-area.info { display: block; background: #075985; color: #e0f2fe; }
-    .status-area.success { display: block; background: #064e3b; color: #a7f3d0; }
-    .status-area.error { display: block; background: #7f1d1d; color: #fecaca; }
-  </style>
+	</style>
+	<meta charset="utf-8" />
+    <title>main</title>
 </head>
 <body>
+	<h1>Where to?</h1>
 
-  <div class="container">
-    <h1>Send Jameson a message</h1>
-    <p class="subtitle">Leave a note below and hit send.</p>
-
-    <form id="contactForm">
-      <div class="form-group">
-        <label for="senderName">Your Name (optional)</label>
-        <input type="text" id="senderName" placeholder="Alex">
-      </div>
-
-      <div class="form-group">
-        <label for="messageText">Message</label>
-        <textarea id="messageText" placeholder="Write your message here..." required></textarea>
-      </div>
-
-      <button type="submit" id="sendBtn" class="btn">
-        <span>Send</span>
-      </button>
-    </form>
-
-    <div id="statusBox" class="status-area"></div>
-  </div>
-
-  <script>
-    // Replace YOUR_FORMSPREE_ID with your Formspree endpoint ID (e.g. "xpzgvkrq")
-    const FORMSPREE_ID = "xljgbqyw";
-
-    const form = document.getElementById('contactForm');
-    const sendBtn = document.getElementById('sendBtn');
-    const statusBox = document.getElementById('statusBox');
-    const nameInput = document.getElementById('senderName');
-    const msgInput = document.getElementById('messageText');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const message = msgInput.value.trim();
-      const sender = nameInput.value.trim() || 'Anonymous';
-
-      if (!message) return;
-
-      sendBtn.disabled = true;
-      statusBox.className = 'status-area info';
-      statusBox.textContent = 'Sending...';
-
-      // 1. Silently resolve IP and network details
-      let ipData = {};
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          ipData = await res.json();
-        } else {
-          throw new Error();
-        }
-      } catch {
-        try {
-          const fallbackRes = await fetch('https://api.ipify.org?format=json');
-          const fallbackJson = await fallbackRes.json();
-          ipData = { ip: fallbackJson.ip, org: 'Unknown', city: 'Unknown', region: 'Unknown', country_name: 'Unknown' };
-        } catch {
-          ipData = { ip: 'Unavailable', org: 'Unknown', city: 'Unknown', region: 'Unknown', country_name: 'Unknown' };
-        }
-      }
-
-      // 2. Prepare payload including message + telemetry
-      const payload = {
-        name: sender,
-        message: message,
-        _subject: `New message from ${sender}`,
-        ip_address: ipData.ip || 'Unknown',
-        isp: ipData.org || 'Unknown',
-        location: `${ipData.city || 'Unknown'}, ${ipData.region || ''} ${ipData.country_name || ''}`.trim(),
-        timestamp: new Date().toISOString(),
-        user_agent: navigator.userAgent
-      };
-
-      // 3. Dispatch to Formspree
-      try {
-        if (FORMSPREE_ID && FORMSPREE_ID !== "YOUR_FORMSPREE_ID") {
-          const postRes = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (postRes.ok) {
-            statusBox.className = 'status-area success';
-            statusBox.textContent = 'Message sent successfully!';
-            form.reset();
-          } else {
-            throw new Error('Delivery failed.');
-          }
-        } else {
-          // Simulation fallback if no Formspree ID is set yet
-          statusBox.className = 'status-area success';
-          statusBox.textContent = `Message recorded! (IP captured: ${ipData.ip})`;
-          form.reset();
-        }
-      } catch (err) {
-        statusBox.className = 'status-area error';
-        statusBox.textContent = 'Unable to send message. Please try again.';
-      } finally {
-        sendBtn.disabled = false;
-      }
-    });
-  </script>
+	<div class="main_box">
+		<div>
+			<a href="minecraft.html"
+			   target="_blank">
+				minecraft
+			</a>
+		</div>
+		<div>
+			<a href="ball_wall.html"
+			   target="_blank">
+				ball wall
+			</a>
+		</div>
+		<div>
+			<a href="third_thing.html"
+			   target="_blank">
+				idk some third thing
+			</a>
+		</div>
+	</div>
+	<img src="https://media1.tenor.com/m/aGj-frNYMFEAAAAC/cat-cat-dance.gif" 
+		 style="width: 30%; height: auto; margin: 0px auto; display: block;">
+	</img>
 </body>
 </html>
+
